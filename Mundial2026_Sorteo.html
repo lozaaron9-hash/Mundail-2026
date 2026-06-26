@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -117,6 +116,13 @@ input[type=search]:focus { border-color:var(--red); }
 .conf-AFC      { background:#1A6B3A; }
 .conf-CONCACAF { background:#6A0DAD; }
 .conf-OFC      { background:#007B8A; }
+.acc-elim      { background:linear-gradient(90deg,#999,#ccc); }
+.scard-elim    { opacity:.6; filter:grayscale(.5); }
+.scard-elim:hover { transform:none; box-shadow:0 3px 12px var(--shadow); border-color:var(--border); }
+.sbadge { font-size:10px; font-weight:700; letter-spacing:1px; padding:2px 8px; border-radius:10px; }
+.badge-elim   { background:#FFE5E5; color:#C8102E; }
+.badge-clasif { background:var(--light-green); color:var(--green); }
+.badge-live   { background:#EEF3FF; color:var(--blue); }
 .acc-UEFA      { background:linear-gradient(90deg,#003DA5,#4A7FD4); }
 .acc-CONMEBOL  { background:linear-gradient(90deg,#C8102E,#FF4560); }
 .acc-CAF       { background:linear-gradient(90deg,#C8860A,#E8A020); }
@@ -198,9 +204,9 @@ footer strong { color:var(--red); }
 <div class="stats">
   <div class="stat"><div class="stat-num c-red">40</div><div class="stat-label">Participantes</div></div>
   <div class="stat"><div class="stat-num c-blue">48</div><div class="stat-label">Selecciones</div></div>
-  <div class="stat"><div class="stat-num c-muted">16</div><div class="stat-label">Partidos</div></div>
-  <div class="stat"><div class="stat-num c-grn">8</div><div class="stat-label">Ganadoras</div></div>
-  <div class="stat"><div class="stat-num c-gld">44</div><div class="stat-label">Goles</div></div>
+  <div class="stat"><div class="stat-num c-muted">50</div><div class="stat-label">Partidos</div></div>
+  <div class="stat"><div class="stat-num c-grn">28</div><div class="stat-label">Con Victorias</div></div>
+  <div class="stat"><div class="stat-num" style="color:#C8102E">9</div><div class="stat-label">Eliminadas</div></div>
 </div>
 
 <!-- TABS -->
@@ -242,7 +248,7 @@ footer strong { color:var(--red); }
   <div class="section-title">PARTIDOS JUGADOS</div>
   <div class="match-grid" id="match-grid"></div>
 
-  <div class="section-title" style="margin-top:16px">SELECCIONES CON VICTORIAS · +3 PTS</div>
+  <div class="section-title" style="margin-top:16px">TABLA DEL SORTEO · PUNTOS ACUMULADOS (actualizado 26 Jun)</div>
   <div class="winners-grid" id="winners-grid"></div>
 </div>
 
@@ -293,42 +299,112 @@ const sorteoData = [
   {num:40, name:"Diego Bravo",          flag:"🇿🇦", country:"Sudáfrica",         rank:60, conf:"CAF"},
 ];
 
-/* Puntos por selección */
+/* Puntos sorteo por selección (3 pts por victoria) — actualizado 26 Jun */
 const puntosMap = {
-  "Alemania":3,"Suecia":3,"Estados Unidos":3,"México":3,
-  "Australia":3,"Corea del Sur":3,"Costa de Marfil":3,"Escocia":3
+  "México":9,
+  "Suiza":6,"Brasil":6,"Marruecos":6,"Estados Unidos":6,
+  "Alemania":6,"Costa de Marfil":6,"Países Bajos":6,
+  "Francia":6,"Noruega":6,"Argentina":6,"Colombia":6,
+  "Corea del Sur":3,"Sudáfrica":3,"Canadá":3,"Escocia":3,
+  "Australia":3,"Paraguay":3,"Turquía":3,"Japón":3,
+  "Suecia":3,"Egipto":3,"España":3,"Austria":3,
+  "Portugal":3,"Inglaterra":3,"Ghana":3,"Croacia":3,
 };
 
-/* ── DATA: PARTIDOS ─────────────────────────── */
+const eliminadosSet = new Set([
+  "Qatar","Túnez","Jordania","Panamá","Uzbekistán","Chequia","Iraq","Senegal","Haití"
+]);
+
+const clasificadosSet = new Set([
+  "México","Sudáfrica","Suiza","Canadá","Brasil","Marruecos",
+  "Estados Unidos","Alemania","Francia","Noruega","Argentina","Colombia"
+]);
+
+/* ── DATA: PARTIDOS — actualizado 26 Jun ───── */
 const matches = [
-  { date:"11 Jun", group:"A", flagH:"🇲🇽", teamH:"México",           gh:2, gv:0, flagV:"🇿🇦", teamV:"Sudáfrica",          type:"WIN",  winner:"México",          ownerW:"Fabrizio Amelunge", ownerL:"Diego Bravo" },
-  { date:"12 Jun", group:"B", flagH:"🇰🇷", teamH:"Corea del Sur",    gh:2, gv:1, flagV:"🇨🇿", teamV:"Chequia",            type:"WIN",  winner:"Corea del Sur",   ownerW:"Oscar Careaga",     ownerL:"—" },
-  { date:"12 Jun", group:"B", flagH:"🇨🇦", teamH:"Canadá",           gh:1, gv:1, flagV:"🇧🇦", teamV:"Bosnia Herzegovina", type:"DRAW", winner:null,              ownerW:"Mario Llado",       ownerL:"—" },
-  { date:"13 Jun", group:"C", flagH:"🇺🇸", teamH:"Estados Unidos",   gh:4, gv:1, flagV:"🇵🇾", teamV:"Paraguay",           type:"WIN",  winner:"Estados Unidos",  ownerW:"Pablo Barrientos",  ownerL:"Gabriela Fresco" },
-  { date:"13 Jun", group:"D", flagH:"🇶🇦", teamH:"Qatar",            gh:1, gv:1, flagV:"🇨🇭", teamV:"Suiza",              type:"DRAW", winner:null,              ownerW:"Humberto Villena",  ownerL:"Julio Pinto" },
-  { date:"13 Jun", group:"E", flagH:"🇧🇷", teamH:"Brasil",           gh:1, gv:1, flagV:"🇲🇦", teamV:"Marruecos",          type:"DRAW", winner:null,              ownerW:"Stephany Saavedra", ownerL:"Nikcole Rojas" },
-  { date:"14 Jun", group:"C", flagH:"🇭🇹", teamH:"Haití",            gh:0, gv:1, flagV:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", teamV:"Escocia",             type:"WIN",  winner:"Escocia",         ownerW:"Ana Luz Caballero", ownerL:"—" },
-  { date:"14 Jun", group:"F", flagH:"🇦🇺", teamH:"Australia",        gh:2, gv:0, flagV:"🇹🇷", teamV:"Turquía",            type:"WIN",  winner:"Australia",       ownerW:"Ibrahim Abdev",     ownerL:"Daniel Carvajal" },
-  { date:"14 Jun", group:"G", flagH:"🇩🇪", teamH:"Alemania",         gh:7, gv:1, flagV:"🇨🇼", teamV:"Curazao",            type:"WIN",  winner:"Alemania",        ownerW:"Ma Rene Rocabado",  ownerL:"—" },
-  { date:"14 Jun", group:"H", flagH:"🇳🇱", teamH:"Países Bajos",     gh:2, gv:2, flagV:"🇯🇵", teamV:"Japón",              type:"DRAW", winner:null,              ownerW:"Jaqueline Bell",    ownerL:"Dora Vaca" },
-  { date:"15 Jun", group:"I", flagH:"🇨🇮", teamH:"Costa de Marfil",  gh:1, gv:0, flagV:"🇪🇨", teamV:"Ecuador",            type:"WIN",  winner:"Costa de Marfil", ownerW:"Aldo Velasco",      ownerL:"—" },
-  { date:"15 Jun", group:"J", flagH:"🇸🇪", teamH:"Suecia",           gh:5, gv:1, flagV:"🇹🇳", teamV:"Túnez",              type:"WIN",  winner:"Suecia",          ownerW:"Saul Ortiz",        ownerL:"Miolet Padilla" },
-  { date:"16 Jun", group:"I", flagH:"🇫🇷", teamH:"Francia",          gh:"?", gv:"?", flagV:"🇸🇳", teamV:"Senegal",        type:"LIVE", winner:null,              ownerW:"Alejandro Pastrana",ownerL:"Fabio Vega" },
-  { date:"16 Jun", group:"I", flagH:"🇮🇶", teamH:"Iraq",             gh:"?", gv:"?", flagV:"🇳🇴", teamV:"Noruega",        type:"LIVE", winner:null,              ownerW:"—",                 ownerL:"Ricardo Moro" },
-  { date:"16 Jun", group:"J", flagH:"🇦🇷", teamH:"Argentina",        gh:"?", gv:"?", flagV:"🇩🇿", teamV:"Argelia",        type:"LIVE", winner:null,              ownerW:"Claudia Ucedo",     ownerL:"—" },
-  { date:"16 Jun", group:"J", flagH:"🇦🇹", teamH:"Austria",          gh:"?", gv:"?", flagV:"🇯🇴", teamV:"Jordania",       type:"LIVE", winner:null,              ownerW:"Juan Tavolara",     ownerL:"—" },
+  // ── JORNADA 1 ──
+  { date:"11 Jun", group:"A", flagH:"🇲🇽", teamH:"México",          gh:2, gv:0, flagV:"🇿🇦", teamV:"Sudáfrica",         type:"WIN",  winner:"México",          ownerW:"Fabrizio Amelunge", ownerL:"Diego Bravo" },
+  { date:"11 Jun", group:"A", flagH:"🇰🇷", teamH:"Corea del Sur",   gh:2, gv:1, flagV:"🇨🇿", teamV:"Chequia",           type:"WIN",  winner:"Corea del Sur",   ownerW:"Oscar Careaga",     ownerL:"—" },
+  { date:"12 Jun", group:"B", flagH:"🇨🇦", teamH:"Canadá",          gh:1, gv:1, flagV:"🇧🇦", teamV:"Bosnia Herz.",      type:"DRAW", winner:null,              ownerW:"Mario Llado",       ownerL:"—" },
+  { date:"13 Jun", group:"B", flagH:"🇶🇦", teamH:"Qatar",           gh:1, gv:1, flagV:"🇨🇭", teamV:"Suiza",             type:"DRAW", winner:null,              ownerW:"Humberto Villena",  ownerL:"Julio Pinto" },
+  { date:"13 Jun", group:"C", flagH:"🇧🇷", teamH:"Brasil",          gh:1, gv:1, flagV:"🇲🇦", teamV:"Marruecos",         type:"DRAW", winner:null,              ownerW:"Stephany Saavedra", ownerL:"Nikcole Rojas" },
+  { date:"13 Jun", group:"C", flagH:"🇺🇸", teamH:"Estados Unidos",  gh:4, gv:1, flagV:"🇵🇾", teamV:"Paraguay",          type:"WIN",  winner:"Estados Unidos",  ownerW:"Pablo Barrientos",  ownerL:"Gabriela Fresco" },
+  { date:"14 Jun", group:"C", flagH:"🇭🇹", teamH:"Haití",           gh:0, gv:1, flagV:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", teamV:"Escocia",            type:"WIN",  winner:"Escocia",         ownerW:"Ana Luz Caballero", ownerL:"—" },
+  { date:"14 Jun", group:"D", flagH:"🇦🇺", teamH:"Australia",       gh:2, gv:0, flagV:"🇹🇷", teamV:"Turquía",           type:"WIN",  winner:"Australia",       ownerW:"Ibrahim Abdev",     ownerL:"Daniel Carvajal" },
+  { date:"14 Jun", group:"E", flagH:"🇩🇪", teamH:"Alemania",        gh:7, gv:1, flagV:"🇨🇼", teamV:"Curazao",           type:"WIN",  winner:"Alemania",        ownerW:"Ma Rene Rocabado",  ownerL:"—" },
+  { date:"14 Jun", group:"E", flagH:"🇨🇮", teamH:"Costa de Marfil", gh:1, gv:0, flagV:"🇪🇨", teamV:"Ecuador",           type:"WIN",  winner:"Costa de Marfil", ownerW:"Aldo Velasco",      ownerL:"—" },
+  { date:"14 Jun", group:"F", flagH:"🇳🇱", teamH:"Países Bajos",    gh:2, gv:2, flagV:"🇯🇵", teamV:"Japón",             type:"DRAW", winner:null,              ownerW:"Jaqueline Bell",    ownerL:"Dora Vaca" },
+  { date:"14 Jun", group:"F", flagH:"🇸🇪", teamH:"Suecia",          gh:5, gv:1, flagV:"🇹🇳", teamV:"Túnez",             type:"WIN",  winner:"Suecia",          ownerW:"Saul Ortiz",        ownerL:"Miolet Padilla" },
+  { date:"15 Jun", group:"G", flagH:"🇧🇪", teamH:"Bélgica",         gh:1, gv:1, flagV:"🇪🇬", teamV:"Egipto",            type:"DRAW", winner:null,              ownerW:"Sonia Antelo",      ownerL:"Stefan Fleig" },
+  { date:"15 Jun", group:"G", flagH:"🇮🇷", teamH:"Irán",            gh:2, gv:2, flagV:"🇳🇿", teamV:"Nueva Zelanda",     type:"DRAW", winner:null,              ownerW:"Fernando Montenegro",ownerL:"Yoselin Rodriguez" },
+  { date:"16 Jun", group:"I", flagH:"🇫🇷", teamH:"Francia",         gh:2, gv:0, flagV:"🇸🇳", teamV:"Senegal",           type:"WIN",  winner:"Francia",         ownerW:"Alejandro Pastrana",ownerL:"Fabio Vega" },
+  { date:"16 Jun", group:"I", flagH:"🇮🇶", teamH:"Iraq",            gh:0, gv:3, flagV:"🇳🇴", teamV:"Noruega",           type:"WIN",  winner:"Noruega",         ownerW:"—",                 ownerL:"Ricardo Moro" },
+  { date:"16 Jun", group:"J", flagH:"🇦🇷", teamH:"Argentina",       gh:2, gv:0, flagV:"🇩🇿", teamV:"Argelia",           type:"WIN",  winner:"Argentina",       ownerW:"Claudia Ucedo",     ownerL:"—" },
+  { date:"16 Jun", group:"J", flagH:"🇦🇹", teamH:"Austria",         gh:2, gv:0, flagV:"🇯🇴", teamV:"Jordania",          type:"WIN",  winner:"Austria",         ownerW:"Juan Tavolara",     ownerL:"—" },
+  // ── JORNADA 2 ──
+  { date:"18 Jun", group:"A", flagH:"🇨🇿", teamH:"Chequia",         gh:1, gv:1, flagV:"🇿🇦", teamV:"Sudáfrica",         type:"DRAW", winner:null,              ownerW:"—",                 ownerL:"Diego Bravo" },
+  { date:"18 Jun", group:"A", flagH:"🇲🇽", teamH:"México",          gh:1, gv:0, flagV:"🇰🇷", teamV:"Corea del Sur",     type:"WIN",  winner:"México",          ownerW:"Fabrizio Amelunge", ownerL:"Oscar Careaga" },
+  { date:"18 Jun", group:"B", flagH:"🇨🇭", teamH:"Suiza",           gh:4, gv:1, flagV:"🇧🇦", teamV:"Bosnia Herz.",      type:"WIN",  winner:"Suiza",           ownerW:"Julio Pinto",       ownerL:"—" },
+  { date:"18 Jun", group:"B", flagH:"🇨🇦", teamH:"Canadá",          gh:6, gv:0, flagV:"🇶🇦", teamV:"Qatar",             type:"WIN",  winner:"Canadá",          ownerW:"Mario Llado",       ownerL:"Humberto Villena" },
+  { date:"19 Jun", group:"C", flagH:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", teamH:"Escocia",         gh:0, gv:1, flagV:"🇲🇦", teamV:"Marruecos",         type:"WIN",  winner:"Marruecos",       ownerW:"Nikcole Rojas",     ownerL:"Ana Luz Caballero" },
+  { date:"19 Jun", group:"C", flagH:"🇧🇷", teamH:"Brasil",          gh:3, gv:0, flagV:"🇭🇹", teamV:"Haití",             type:"WIN",  winner:"Brasil",          ownerW:"Stephany Saavedra", ownerL:"—" },
+  { date:"19 Jun", group:"D", flagH:"🇺🇸", teamH:"Estados Unidos",  gh:2, gv:0, flagV:"🇦🇺", teamV:"Australia",         type:"WIN",  winner:"Estados Unidos",  ownerW:"Pablo Barrientos",  ownerL:"Ibrahim Abdev" },
+  { date:"19 Jun", group:"D", flagH:"🇹🇷", teamH:"Turquía",         gh:0, gv:1, flagV:"🇵🇾", teamV:"Paraguay",          type:"WIN",  winner:"Paraguay",        ownerW:"Gabriela Fresco",   ownerL:"Daniel Carvajal" },
+  { date:"20 Jun", group:"E", flagH:"🇩🇪", teamH:"Alemania",        gh:2, gv:1, flagV:"🇨🇮", teamV:"Costa de Marfil",   type:"WIN",  winner:"Alemania",        ownerW:"Ma Rene Rocabado",  ownerL:"Aldo Velasco" },
+  { date:"20 Jun", group:"E", flagH:"🇪🇨", teamH:"Ecuador",         gh:0, gv:0, flagV:"🇨🇼", teamV:"Curazao",           type:"DRAW", winner:null,              ownerW:"—",                 ownerL:"—" },
+  { date:"20 Jun", group:"F", flagH:"🇳🇱", teamH:"Países Bajos",    gh:5, gv:1, flagV:"🇸🇪", teamV:"Suecia",            type:"WIN",  winner:"Países Bajos",    ownerW:"Jaqueline Bell",    ownerL:"Saul Ortiz" },
+  { date:"20 Jun", group:"F", flagH:"🇯🇵", teamH:"Japón",           gh:4, gv:0, flagV:"🇹🇳", teamV:"Túnez",             type:"WIN",  winner:"Japón",           ownerW:"Dora Vaca",         ownerL:"Miolet Padilla" },
+  { date:"21 Jun", group:"G", flagH:"🇧🇪", teamH:"Bélgica",         gh:0, gv:0, flagV:"🇮🇷", teamV:"Irán",              type:"DRAW", winner:null,              ownerW:"Sonia Antelo",      ownerL:"Fernando Montenegro" },
+  { date:"21 Jun", group:"G", flagH:"🇪🇬", teamH:"Egipto",          gh:3, gv:1, flagV:"🇳🇿", teamV:"Nueva Zelanda",     type:"WIN",  winner:"Egipto",          ownerW:"Stefan Fleig",      ownerL:"Yoselin Rodriguez" },
+  { date:"22 Jun", group:"I", flagH:"🇫🇷", teamH:"Francia",         gh:3, gv:0, flagV:"🇮🇶", teamV:"Iraq",              type:"WIN",  winner:"Francia",         ownerW:"Alejandro Pastrana",ownerL:"—" },
+  { date:"22 Jun", group:"I", flagH:"🇳🇴", teamH:"Noruega",         gh:3, gv:0, flagV:"🇸🇳", teamV:"Senegal",           type:"WIN",  winner:"Noruega",         ownerW:"Ricardo Moro",      ownerL:"Fabio Vega" },
+  { date:"22 Jun", group:"J", flagH:"🇦🇷", teamH:"Argentina",       gh:3, gv:1, flagV:"🇦🇹", teamV:"Austria",           type:"WIN",  winner:"Argentina",       ownerW:"Claudia Ucedo",     ownerL:"Juan Tavolara" },
+  { date:"22 Jun", group:"J", flagH:"🇩🇿", teamH:"Argelia",         gh:2, gv:0, flagV:"🇯🇴", teamV:"Jordania",          type:"WIN",  winner:"Argelia",         ownerW:"—",                 ownerL:"—" },
+  // ── JORNADA 3 ──
+  { date:"24 Jun", group:"A", flagH:"🇲🇽", teamH:"México",          gh:3, gv:0, flagV:"🇨🇿", teamV:"Chequia",           type:"WIN",  winner:"México",          ownerW:"Fabrizio Amelunge", ownerL:"—" },
+  { date:"24 Jun", group:"A", flagH:"🇿🇦", teamH:"Sudáfrica",       gh:1, gv:0, flagV:"🇰🇷", teamV:"Corea del Sur",     type:"WIN",  winner:"Sudáfrica",       ownerW:"Diego Bravo",       ownerL:"Oscar Careaga" },
+  { date:"24 Jun", group:"B", flagH:"🇨🇭", teamH:"Suiza",           gh:3, gv:1, flagV:"🇨🇦", teamV:"Canadá",            type:"WIN",  winner:"Suiza",           ownerW:"Julio Pinto",       ownerL:"Mario Llado" },
+  { date:"24 Jun", group:"B", flagH:"🇧🇦", teamH:"Bosnia Herz.",    gh:3, gv:1, flagV:"🇶🇦", teamV:"Qatar",             type:"WIN",  winner:"Bosnia Herz.",    ownerW:"—",                 ownerL:"Humberto Villena" },
+  { date:"24 Jun", group:"C", flagH:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", teamH:"Escocia",         gh:0, gv:3, flagV:"🇧🇷", teamV:"Brasil",            type:"WIN",  winner:"Brasil",          ownerW:"Stephany Saavedra", ownerL:"Ana Luz Caballero" },
+  { date:"24 Jun", group:"C", flagH:"🇲🇦", teamH:"Marruecos",       gh:4, gv:2, flagV:"🇭🇹", teamV:"Haití",             type:"WIN",  winner:"Marruecos",       ownerW:"Nikcole Rojas",     ownerL:"—" },
+  { date:"25 Jun", group:"D", flagH:"🇹🇷", teamH:"Turquía",         gh:3, gv:2, flagV:"🇺🇸", teamV:"Estados Unidos",    type:"WIN",  winner:"Turquía",         ownerW:"Daniel Carvajal",   ownerL:"Pablo Barrientos" },
+  { date:"25 Jun", group:"D", flagH:"🇵🇾", teamH:"Paraguay",        gh:0, gv:0, flagV:"🇦🇺", teamV:"Australia",         type:"DRAW", winner:null,              ownerW:"Gabriela Fresco",   ownerL:"Ibrahim Abdev" },
+  { date:"25 Jun", group:"E", flagH:"🇪🇨", teamH:"Ecuador",         gh:2, gv:1, flagV:"🇩🇪", teamV:"Alemania",          type:"WIN",  winner:"Ecuador",         ownerW:"—",                 ownerL:"Ma Rene Rocabado" },
+  { date:"25 Jun", group:"E", flagH:"🇨🇼", teamH:"Curazao",         gh:0, gv:2, flagV:"🇨🇮", teamV:"Costa de Marfil",   type:"WIN",  winner:"Costa de Marfil", ownerW:"Aldo Velasco",      ownerL:"—" },
+  { date:"25 Jun", group:"F", flagH:"🇯🇵", teamH:"Japón",           gh:1, gv:1, flagV:"🇸🇪", teamV:"Suecia",            type:"DRAW", winner:null,              ownerW:"Dora Vaca",         ownerL:"Saul Ortiz" },
+  { date:"25 Jun", group:"F", flagH:"🇳🇱", teamH:"Países Bajos",    gh:3, gv:1, flagV:"🇹🇳", teamV:"Túnez",             type:"WIN",  winner:"Países Bajos",    ownerW:"Jaqueline Bell",    ownerL:"Miolet Padilla" },
 ];
 
-/* ── DATA: GANADORAS ─────────────────────────── */
+/* ── DATA: TABLA SORTEO (ordenada por pts) ───── */
 const winners = [
-  { flag:"🇩🇪", country:"Alemania",        pts:3, owner:"Ma Rene Rocabado",  rival:"Curazao (7-1)", group:"G" },
-  { flag:"🇸🇪", country:"Suecia",          pts:3, owner:"Saul Ortiz",         rival:"Túnez (5-1)",   group:"J" },
-  { flag:"🇺🇸", country:"Estados Unidos",  pts:3, owner:"Pablo Barrientos",   rival:"Paraguay (4-1)",group:"C" },
-  { flag:"🇲🇽", country:"México",          pts:3, owner:"Fabrizio Amelunge",  rival:"Sudáfrica (2-0)",group:"A" },
-  { flag:"🇦🇺", country:"Australia",       pts:3, owner:"Ibrahim Abdev",      rival:"Turquía (2-0)", group:"F" },
-  { flag:"🇰🇷", country:"Corea del Sur",   pts:3, owner:"Oscar Careaga",      rival:"Chequia (2-1)", group:"B" },
-  { flag:"🇨🇮", country:"Costa de Marfil", pts:3, owner:"Aldo Velasco",       rival:"Ecuador (1-0)", group:"I" },
-  { flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", country:"Escocia",          pts:3, owner:"Ana Luz Caballero", rival:"Haití (1-0)",   group:"C" },
+  { flag:"🇲🇽", country:"México",          pts:9,  owner:"Fabrizio Amelunge",  rival:"3 victorias (9pts)", group:"A", status:"✅" },
+  { flag:"🇨🇭", country:"Suiza",           pts:6,  owner:"Julio Pinto",          rival:"2 victorias (6pts)", group:"B", status:"✅" },
+  { flag:"🇧🇷", country:"Brasil",          pts:6,  owner:"Stephany Saavedra",   rival:"2 victorias (6pts)", group:"C", status:"✅" },
+  { flag:"🇲🇦", country:"Marruecos",       pts:6,  owner:"Nikcole Rojas",        rival:"2 victorias (6pts)", group:"C", status:"✅" },
+  { flag:"🇺🇸", country:"Estados Unidos",  pts:6,  owner:"Pablo Barrientos",    rival:"2 victorias (6pts)", group:"D", status:"✅" },
+  { flag:"🇩🇪", country:"Alemania",        pts:6,  owner:"Ma Rene Rocabado",    rival:"2 victorias (6pts)", group:"E", status:"✅" },
+  { flag:"🇨🇮", country:"Costa de Marfil", pts:6,  owner:"Aldo Velasco",         rival:"2 victorias (6pts)", group:"E", status:"✅" },
+  { flag:"🇳🇱", country:"Países Bajos",    pts:6,  owner:"Jaqueline Bell",       rival:"2 victorias (6pts)", group:"F", status:"✅" },
+  { flag:"🇫🇷", country:"Francia",         pts:6,  owner:"Alejandro Pastrana",   rival:"2 victorias (6pts)", group:"I", status:"✅" },
+  { flag:"🇳🇴", country:"Noruega",         pts:6,  owner:"Ricardo Moro",         rival:"2 victorias (6pts)", group:"I", status:"✅" },
+  { flag:"🇦🇷", country:"Argentina",       pts:6,  owner:"Claudia Ucedo",        rival:"2 victorias (6pts)", group:"J", status:"✅" },
+  { flag:"🇨🇴", country:"Colombia",        pts:6,  owner:"Nancy Perez",          rival:"2 victorias (6pts)", group:"K", status:"✅" },
+  { flag:"🇰🇷", country:"Corea del Sur",   pts:3,  owner:"Oscar Careaga",        rival:"1 victoria  (3pts)", group:"A", status:"⚽" },
+  { flag:"🇿🇦", country:"Sudáfrica",       pts:3,  owner:"Diego Bravo",          rival:"1 victoria  (3pts)", group:"A", status:"✅" },
+  { flag:"🇨🇦", country:"Canadá",          pts:3,  owner:"Mario Llado",          rival:"1 victoria  (3pts)", group:"B", status:"✅" },
+  { flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", country:"Escocia",          pts:3,  owner:"Ana Luz Caballero",  rival:"1 victoria  (3pts)", group:"C", status:"⚽" },
+  { flag:"🇦🇺", country:"Australia",       pts:3,  owner:"Ibrahim Abdev",        rival:"1 victoria  (3pts)", group:"D", status:"⚽" },
+  { flag:"🇵🇾", country:"Paraguay",        pts:3,  owner:"Gabriela Fresco",      rival:"1 victoria  (3pts)", group:"D", status:"⚽" },
+  { flag:"🇹🇷", country:"Turquía",         pts:3,  owner:"Daniel Carvajal",      rival:"1 victoria  (3pts)", group:"D", status:"⚽" },
+  { flag:"🇸🇪", country:"Suecia",          pts:3,  owner:"Saul Ortiz",           rival:"1 victoria  (3pts)", group:"F", status:"⚽" },
+  { flag:"🇯🇵", country:"Japón",           pts:3,  owner:"Dora Vaca",            rival:"1 victoria  (3pts)", group:"F", status:"⚽" },
+  { flag:"🇪🇬", country:"Egipto",          pts:3,  owner:"Stefan Fleig",         rival:"1 victoria  (3pts)", group:"G", status:"⚽" },
+  { flag:"🇪🇸", country:"España",          pts:3,  owner:"Karina Vaca Pereira",  rival:"1 victoria  (3pts)", group:"H", status:"⚽" },
+  { flag:"🇦🇹", country:"Austria",         pts:3,  owner:"Juan Tavolara",        rival:"1 victoria  (3pts)", group:"J", status:"⚽" },
+  { flag:"🇵🇹", country:"Portugal",        pts:3,  owner:"Jairo Rojas",          rival:"1 victoria  (3pts)", group:"K", status:"⚽" },
+  { flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", country:"Inglaterra",       pts:3,  owner:"Gabriela Pedraza",    rival:"1 victoria  (3pts)", group:"L", status:"⚽" },
+  { flag:"🇬🇭", country:"Ghana",           pts:3,  owner:"Pamela Pinto",         rival:"1 victoria  (3pts)", group:"L", status:"⚽" },
+  { flag:"🇭🇷", country:"Croacia",         pts:3,  owner:"Fiorela Seoane",       rival:"1 victoria  (3pts)", group:"L", status:"⚽" },
 ];
 
 /* ── SORTEO LOGIC ───────────────────────────── */
@@ -339,18 +415,26 @@ function buildSorteo() {
   grid.innerHTML = '';
   sorteoData.forEach((d, i) => {
     const pts = puntosMap[d.country] || 0;
+    const elim = eliminadosSet.has(d.country);
+    const clasif = clasificadosSet.has(d.country);
+    const statusBadge = elim
+      ? '<span class="sbadge badge-elim">❌ ELIMINADO</span>'
+      : clasif
+        ? '<span class="sbadge badge-clasif">✅ CLASIFICADO</span>'
+        : '<span class="sbadge badge-live">⚽ EN JUEGO</span>';
     const card = document.createElement('div');
-    card.className = 'scard';
+    card.className = 'scard' + (elim ? ' scard-elim' : '');
     card.dataset.conf = d.conf;
     card.style.animationDelay = `${i * 25}ms`;
     card.innerHTML = `
-      <div class="scard-accent acc-${d.conf}"></div>
+      <div class="scard-accent ${elim?'acc-elim':'acc-'+d.conf}"></div>
       <span class="scard-num">#${d.num}</span>
       <div class="scard-body">
-        <span class="scard-flag">${d.flag}</span>
+        <span class="scard-flag" style="${elim?'filter:grayscale(1);opacity:.5':''}">${d.flag}</span>
         <div class="scard-info">
           <div class="scard-country">${d.country}</div>
           <div class="scard-name">👤 ${d.name}</div>
+          <div style="margin-top:4px">${statusBadge}</div>
         </div>
       </div>
       <div class="scard-footer">
@@ -447,8 +531,8 @@ function buildWinners() {
         </div>
       </div>
       <div class="wcard-footer">
-        <span class="wcard-rival">vs ${w.rival}</span>
-        <span class="wbadge">GRUPO ${w.group}</span>
+        <span class="wcard-rival">${w.rival}</span>
+        <span class="wbadge">${w.status} GRP ${w.group}</span>
       </div>`;
     grid.appendChild(card);
   });

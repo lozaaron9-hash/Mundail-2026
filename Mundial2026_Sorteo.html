@@ -176,6 +176,24 @@ input[type=search]:focus { border-color:var(--red); }
 .wcard-pts { font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--green); line-height:1; }
 .wcard-pts-label { font-size:10px; color:var(--muted); letter-spacing:1px; }
 .wcard-footer { display:flex; align-items:center; justify-content:space-between; padding:7px 16px 10px; border-top:1px solid var(--border); background:#FAFAF8; }
+
+/* ── ELIMINADOS ──────────────────────────── */
+.filter-btn.f-elim { border-color:#C8102E; color:#C8102E; }
+.filter-btn.f-elim.active-elim { background:#C8102E; color:#fff; border-color:#C8102E; }
+.elim-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; padding:12px 24px 36px; max-width:1400px; margin:0 auto; }
+.ecard { background:var(--white); border:1.5px solid #F5C6C6; border-radius:14px; overflow:hidden; box-shadow:0 3px 12px rgba(200,16,46,.07); opacity:0; animation:reveal .4s forwards; }
+.ecard-top { height:4px; background:linear-gradient(90deg,#C8102E,#FF6B6B); }
+.ecard-body { padding:14px 16px 10px; display:flex; align-items:center; gap:12px; }
+.ecard-flag { font-size:38px; filter:grayscale(.4) drop-shadow(0 2px 4px rgba(0,0,0,.1)); }
+.ecard-info { flex:1; }
+.ecard-country { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px; color:#999; }
+.ecard-name { font-size:12px; color:var(--muted); margin-top:2px; }
+.ecard-pts { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--muted); }
+.ecard-pts-label { font-size:10px; color:#ccc; letter-spacing:1px; }
+.ecard-footer { display:flex; align-items:center; justify-content:space-between; padding:7px 16px 10px; border-top:1px solid #F5C6C6; background:#FFF8F8; }
+.ecard-group { font-size:11px; color:#bbb; }
+.ebadge { font-size:10px; font-weight:700; letter-spacing:1.5px; background:#FFE5E5; color:#C8102E; padding:3px 9px; border-radius:20px; }
+.ebadge-pts { background:#FFF3CD; color:#856404; }
 .wcard-rival { font-size:11px; color:var(--muted); }
 .wbadge { font-size:10px; font-weight:700; letter-spacing:1.5px; background:var(--light-green); color:var(--green); padding:3px 9px; border-radius:20px; }
 
@@ -203,10 +221,10 @@ footer strong { color:var(--red); }
 <!-- STATS -->
 <div class="stats">
   <div class="stat"><div class="stat-num c-red">40</div><div class="stat-label">Participantes</div></div>
-  <div class="stat"><div class="stat-num c-blue">48</div><div class="stat-label">Selecciones</div></div>
-  <div class="stat"><div class="stat-num c-muted">50</div><div class="stat-label">Partidos</div></div>
-  <div class="stat"><div class="stat-num c-grn">28</div><div class="stat-label">Con Victorias</div></div>
-  <div class="stat"><div class="stat-num" style="color:#C8102E">9</div><div class="stat-label">Eliminadas</div></div>
+  <div class="stat"><div class="stat-num c-blue">72</div><div class="stat-label">Partidos Jugados</div></div>
+  <div class="stat"><div class="stat-num c-grn">32</div><div class="stat-label">Clasificados 16avos</div></div>
+  <div class="stat"><div class="stat-num" style="color:#C8102E">16</div><div class="stat-label">Eliminados</div></div>
+  <div class="stat"><div class="stat-num c-gld">29 Jun</div><div class="stat-label">16avos Inicio</div></div>
 </div>
 
 <!-- TABS -->
@@ -243,16 +261,25 @@ footer strong { color:var(--red); }
     <button class="filter-btn" onclick="filterMatches('WIN',this)">✅ Victorias</button>
     <button class="filter-btn" onclick="filterMatches('DRAW',this)">➖ Empates</button>
     <button class="filter-btn" onclick="filterMatches('LIVE',this)">🔴 En curso</button>
+    <button class="filter-btn f-elim" onclick="showElim(this)" id="btn-elim">❌ ELIMINADOS</button>
   </div>
 
-  <div class="section-title">PARTIDOS JUGADOS</div>
-  <div class="match-grid" id="match-grid"></div>
+  <!-- PARTIDOS + TABLA (se ocultan al ver eliminados) -->
+  <div id="res-main">
+    <div class="section-title">PARTIDOS JUGADOS</div>
+    <div class="match-grid" id="match-grid"></div>
+    <div class="section-title" style="margin-top:16px">TABLA DEL SORTEO · PUNTOS FASE DE GRUPOS — FINAL (29 Jun)</div>
+    <div class="winners-grid" id="winners-grid"></div>
+  </div>
 
-  <div class="section-title" style="margin-top:16px">TABLA DEL SORTEO · PUNTOS ACUMULADOS (actualizado 26 Jun)</div>
-  <div class="winners-grid" id="winners-grid"></div>
+  <!-- ELIMINADOS -->
+  <div id="elim-section" style="display:none">
+    <div class="section-title">PARTICIPANTES ELIMINADOS — REENGANCHE DISPONIBLE</div>
+    <div class="elim-grid" id="elim-grid"></div>
+  </div>
 </div>
 
-<footer>🏆 Mundial 2026 · <strong>REMAX NORTE AGROURBANO</strong> · Sorteo de Oficina · Actualizado 16 Jun 2026</footer>
+<footer>🏆 Mundial 2026 · <strong>REMAX NORTE AGROURBANO</strong> · Sorteo de Oficina · Fase de grupos completa · 29 Jun 2026 · 16avos en curso</footer>
 
 <script>
 /* ── DATA: SORTEO ───────────────────────────── */
@@ -299,25 +326,36 @@ const sorteoData = [
   {num:40, name:"Diego Bravo",          flag:"🇿🇦", country:"Sudáfrica",         rank:60, conf:"CAF"},
 ];
 
-/* Puntos sorteo por selección (3 pts por victoria) — actualizado 26 Jun */
+/* Puntos sorteo por selección (3 pts por victoria) — actualizado 29 Jun — fase de grupos completa */
 const puntosMap = {
-  "México":9,
+  // 9 pts — 3 victorias
+  "México":9,"Francia":9,"Argentina":9,
+  // 6 pts — 2 victorias
   "Suiza":6,"Brasil":6,"Marruecos":6,"Estados Unidos":6,
   "Alemania":6,"Costa de Marfil":6,"Países Bajos":6,
-  "Francia":6,"Noruega":6,"Argentina":6,"Colombia":6,
+  "Noruega":6,"Colombia":6,"España":6,"Inglaterra":6,"Croacia":6,
+  // 3 pts — 1 victoria
   "Corea del Sur":3,"Sudáfrica":3,"Canadá":3,"Escocia":3,
   "Australia":3,"Paraguay":3,"Turquía":3,"Japón":3,
-  "Suecia":3,"Egipto":3,"España":3,"Austria":3,
-  "Portugal":3,"Inglaterra":3,"Ghana":3,"Croacia":3,
+  "Suecia":3,"Egipto":3,"Bélgica":3,"Austria":3,
+  "Senegal":3,"Portugal":3,"RD Congo":3,"Ghana":3,
+  // 0 pts — sin victorias (Cabo Verde: 3 empates)
 };
 
 const eliminadosSet = new Set([
-  "Qatar","Túnez","Jordania","Panamá","Uzbekistán","Chequia","Iraq","Senegal","Haití"
+  "Qatar","Túnez","Jordania","Panamá","Uzbekistán","Chequia","Iraq","Haití",
+  "Turquía","Irán","Nueva Zelanda","Uruguay","Arabia Saudita","Escocia","Corea del Sur","Curazao"
 ]);
 
 const clasificadosSet = new Set([
-  "México","Sudáfrica","Suiza","Canadá","Brasil","Marruecos",
-  "Estados Unidos","Alemania","Francia","Noruega","Argentina","Colombia"
+  // Campeones de grupo
+  "México","Suiza","Brasil","Estados Unidos","Alemania","Países Bajos",
+  "Bélgica","España","Francia","Argentina","Colombia","Inglaterra",
+  // Subcampeones
+  "Sudáfrica","Canadá","Marruecos","Australia","Costa de Marfil","Japón",
+  "Egipto","Cabo Verde","Noruega","Austria","Portugal","Croacia",
+  // Mejores terceros
+  "Bosnia Herzegovina","Paraguay","Ecuador","Suecia","Senegal","Algeria","RD Congo","Ghana"
 ]);
 
 /* ── DATA: PARTIDOS — actualizado 26 Jun ───── */
@@ -375,36 +413,44 @@ const matches = [
   { date:"25 Jun", group:"F", flagH:"🇳🇱", teamH:"Países Bajos",    gh:3, gv:1, flagV:"🇹🇳", teamV:"Túnez",             type:"WIN",  winner:"Países Bajos",    ownerW:"Jaqueline Bell",    ownerL:"Miolet Padilla" },
 ];
 
-/* ── DATA: TABLA SORTEO (ordenada por pts) ───── */
+/* ── DATA: TABLA SORTEO FINAL — 29 Jun ──────── */
 const winners = [
-  { flag:"🇲🇽", country:"México",          pts:9,  owner:"Fabrizio Amelunge",  rival:"3 victorias (9pts)", group:"A", status:"✅" },
-  { flag:"🇨🇭", country:"Suiza",           pts:6,  owner:"Julio Pinto",          rival:"2 victorias (6pts)", group:"B", status:"✅" },
-  { flag:"🇧🇷", country:"Brasil",          pts:6,  owner:"Stephany Saavedra",   rival:"2 victorias (6pts)", group:"C", status:"✅" },
-  { flag:"🇲🇦", country:"Marruecos",       pts:6,  owner:"Nikcole Rojas",        rival:"2 victorias (6pts)", group:"C", status:"✅" },
-  { flag:"🇺🇸", country:"Estados Unidos",  pts:6,  owner:"Pablo Barrientos",    rival:"2 victorias (6pts)", group:"D", status:"✅" },
-  { flag:"🇩🇪", country:"Alemania",        pts:6,  owner:"Ma Rene Rocabado",    rival:"2 victorias (6pts)", group:"E", status:"✅" },
-  { flag:"🇨🇮", country:"Costa de Marfil", pts:6,  owner:"Aldo Velasco",         rival:"2 victorias (6pts)", group:"E", status:"✅" },
-  { flag:"🇳🇱", country:"Países Bajos",    pts:6,  owner:"Jaqueline Bell",       rival:"2 victorias (6pts)", group:"F", status:"✅" },
-  { flag:"🇫🇷", country:"Francia",         pts:6,  owner:"Alejandro Pastrana",   rival:"2 victorias (6pts)", group:"I", status:"✅" },
-  { flag:"🇳🇴", country:"Noruega",         pts:6,  owner:"Ricardo Moro",         rival:"2 victorias (6pts)", group:"I", status:"✅" },
-  { flag:"🇦🇷", country:"Argentina",       pts:6,  owner:"Claudia Ucedo",        rival:"2 victorias (6pts)", group:"J", status:"✅" },
-  { flag:"🇨🇴", country:"Colombia",        pts:6,  owner:"Nancy Perez",          rival:"2 victorias (6pts)", group:"K", status:"✅" },
-  { flag:"🇰🇷", country:"Corea del Sur",   pts:3,  owner:"Oscar Careaga",        rival:"1 victoria  (3pts)", group:"A", status:"⚽" },
-  { flag:"🇿🇦", country:"Sudáfrica",       pts:3,  owner:"Diego Bravo",          rival:"1 victoria  (3pts)", group:"A", status:"✅" },
-  { flag:"🇨🇦", country:"Canadá",          pts:3,  owner:"Mario Llado",          rival:"1 victoria  (3pts)", group:"B", status:"✅" },
-  { flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", country:"Escocia",          pts:3,  owner:"Ana Luz Caballero",  rival:"1 victoria  (3pts)", group:"C", status:"⚽" },
-  { flag:"🇦🇺", country:"Australia",       pts:3,  owner:"Ibrahim Abdev",        rival:"1 victoria  (3pts)", group:"D", status:"⚽" },
-  { flag:"🇵🇾", country:"Paraguay",        pts:3,  owner:"Gabriela Fresco",      rival:"1 victoria  (3pts)", group:"D", status:"⚽" },
-  { flag:"🇹🇷", country:"Turquía",         pts:3,  owner:"Daniel Carvajal",      rival:"1 victoria  (3pts)", group:"D", status:"⚽" },
-  { flag:"🇸🇪", country:"Suecia",          pts:3,  owner:"Saul Ortiz",           rival:"1 victoria  (3pts)", group:"F", status:"⚽" },
-  { flag:"🇯🇵", country:"Japón",           pts:3,  owner:"Dora Vaca",            rival:"1 victoria  (3pts)", group:"F", status:"⚽" },
-  { flag:"🇪🇬", country:"Egipto",          pts:3,  owner:"Stefan Fleig",         rival:"1 victoria  (3pts)", group:"G", status:"⚽" },
-  { flag:"🇪🇸", country:"España",          pts:3,  owner:"Karina Vaca Pereira",  rival:"1 victoria  (3pts)", group:"H", status:"⚽" },
-  { flag:"🇦🇹", country:"Austria",         pts:3,  owner:"Juan Tavolara",        rival:"1 victoria  (3pts)", group:"J", status:"⚽" },
-  { flag:"🇵🇹", country:"Portugal",        pts:3,  owner:"Jairo Rojas",          rival:"1 victoria  (3pts)", group:"K", status:"⚽" },
-  { flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", country:"Inglaterra",       pts:3,  owner:"Gabriela Pedraza",    rival:"1 victoria  (3pts)", group:"L", status:"⚽" },
-  { flag:"🇬🇭", country:"Ghana",           pts:3,  owner:"Pamela Pinto",         rival:"1 victoria  (3pts)", group:"L", status:"⚽" },
-  { flag:"🇭🇷", country:"Croacia",         pts:3,  owner:"Fiorela Seoane",       rival:"1 victoria  (3pts)", group:"L", status:"⚽" },
+  // ── 9 PTS (3 victorias) ──────────────────────
+  { flag:"🇲🇽", country:"México",          pts:9,  owner:"Fabrizio Amelunge",   rival:"3 victorias — Líder 🏆", group:"A", status:"✅" },
+  { flag:"🇫🇷", country:"Francia",         pts:9,  owner:"Alejandro Pastrana",  rival:"3 victorias — Líder 🏆", group:"I", status:"✅" },
+  { flag:"🇦🇷", country:"Argentina",       pts:9,  owner:"Claudia Ucedo",       rival:"3 victorias — Líder 🏆", group:"J", status:"✅" },
+  // ── 6 PTS (2 victorias) ──────────────────────
+  { flag:"🇨🇭", country:"Suiza",           pts:6,  owner:"Julio Pinto",         rival:"2 victorias", group:"B", status:"✅" },
+  { flag:"🇧🇷", country:"Brasil",          pts:6,  owner:"Stephany Saavedra",   rival:"2 victorias", group:"C", status:"✅" },
+  { flag:"🇲🇦", country:"Marruecos",       pts:6,  owner:"Nikcole Rojas",       rival:"2 victorias", group:"C", status:"✅" },
+  { flag:"🇺🇸", country:"Estados Unidos",  pts:6,  owner:"Pablo Barrientos",    rival:"2 victorias", group:"D", status:"✅" },
+  { flag:"🇩🇪", country:"Alemania",        pts:6,  owner:"Ma Rene Rocabado",    rival:"2 victorias", group:"E", status:"✅" },
+  { flag:"🇨🇮", country:"Costa de Marfil", pts:6,  owner:"Aldo Velasco",        rival:"2 victorias", group:"E", status:"✅" },
+  { flag:"🇳🇱", country:"Países Bajos",    pts:6,  owner:"Jaqueline Bell",      rival:"2 victorias", group:"F", status:"✅" },
+  { flag:"🇳🇴", country:"Noruega",         pts:6,  owner:"Ricardo Moro",        rival:"2 victorias", group:"I", status:"✅" },
+  { flag:"🇨🇴", country:"Colombia",        pts:6,  owner:"Nancy Perez",         rival:"2 victorias", group:"K", status:"✅" },
+  { flag:"🇪🇸", country:"España",          pts:6,  owner:"Karina Vaca Pereira", rival:"2 victorias", group:"H", status:"✅" },
+  { flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", country:"Inglaterra",       pts:6,  owner:"Gabriela Pedraza",   rival:"2 victorias", group:"L", status:"✅" },
+  { flag:"🇭🇷", country:"Croacia",         pts:6,  owner:"Fiorela Seoane",      rival:"2 victorias", group:"L", status:"✅" },
+  // ── 3 PTS (1 victoria) ───────────────────────
+  { flag:"🇿🇦", country:"Sudáfrica",       pts:3,  owner:"Diego Bravo",         rival:"1 victoria",  group:"A", status:"✅" },
+  { flag:"🇰🇷", country:"Corea del Sur",   pts:3,  owner:"Oscar Careaga",       rival:"1 victoria",  group:"A", status:"❌" },
+  { flag:"🇨🇦", country:"Canadá",          pts:3,  owner:"Mario Llado",         rival:"1 victoria",  group:"B", status:"✅" },
+  { flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", country:"Escocia",          pts:3,  owner:"Ana Luz Caballero",  rival:"1 victoria",  group:"C", status:"❌" },
+  { flag:"🇦🇺", country:"Australia",       pts:3,  owner:"Ibrahim Abdev",       rival:"1 victoria",  group:"D", status:"✅" },
+  { flag:"🇵🇾", country:"Paraguay",        pts:3,  owner:"Gabriela Fresco",     rival:"1 victoria",  group:"D", status:"✅" },
+  { flag:"🇹🇷", country:"Turquía",         pts:3,  owner:"Daniel Carvajal",     rival:"1 victoria",  group:"D", status:"❌" },
+  { flag:"🇯🇵", country:"Japón",           pts:3,  owner:"Dora Vaca",           rival:"1 victoria",  group:"F", status:"✅" },
+  { flag:"🇸🇪", country:"Suecia",          pts:3,  owner:"Saul Ortiz",          rival:"1 victoria",  group:"F", status:"✅" },
+  { flag:"🇧🇪", country:"Bélgica",         pts:3,  owner:"Sonia Antelo",        rival:"1 victoria",  group:"G", status:"✅" },
+  { flag:"🇪🇬", country:"Egipto",          pts:3,  owner:"Stefan Fleig",        rival:"1 victoria",  group:"G", status:"✅" },
+  { flag:"🇸🇳", country:"Senegal",         pts:3,  owner:"Fabio Vega",          rival:"1 victoria",  group:"I", status:"✅" },
+  { flag:"🇦🇹", country:"Austria",         pts:3,  owner:"Juan Tavolara",       rival:"1 victoria",  group:"J", status:"✅" },
+  { flag:"🇵🇹", country:"Portugal",        pts:3,  owner:"Jairo Rojas",         rival:"1 victoria",  group:"K", status:"✅" },
+  { flag:"🇨🇩", country:"RD Congo",        pts:3,  owner:"Mariela Amelunge",    rival:"1 victoria",  group:"K", status:"✅" },
+  { flag:"🇬🇭", country:"Ghana",           pts:3,  owner:"Pamela Pinto",        rival:"1 victoria",  group:"L", status:"✅" },
+  // ── 0 PTS (sin victorias — clasificados con empates) ──
+  { flag:"🇨🇻", country:"Cabo Verde",      pts:0,  owner:"Adelita Eguez",       rival:"3 empates — sin victoria", group:"H", status:"✅" },
 ];
 
 /* ── SORTEO LOGIC ───────────────────────────── */
@@ -557,6 +603,72 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
+}
+
+/* ── ELIMINADOS DATA & LOGIC ─────────────────── */
+const eliminadosData = [
+  { flag:"🇶🇦", country:"Qatar",          owner:"Humberto Villena",    pts:0, group:"B", num:27 },
+  { flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", country:"Escocia",        owner:"Ana Luz Caballero",   pts:3, group:"C", num:26 },
+  { flag:"🇰🇷", country:"Corea del Sur",  owner:"Oscar Careaga",       pts:3, group:"A", num:13 },
+  { flag:"🇹🇷", country:"Turquía",        owner:"Daniel Carvajal",     pts:3, group:"D", num:31 },
+  { flag:"🇹🇳", country:"Túnez",          owner:"Miolet Padilla",      pts:0, group:"F", num:24 },
+  { flag:"🇮🇷", country:"Irán",           owner:"Fernando Montenegro", pts:0, group:"G", num:15 },
+  { flag:"🇳🇿", country:"Nueva Zelanda",  owner:"Yoselin Rodriguez",   pts:0, group:"G", num:3  },
+  { flag:"🇺🇾", country:"Uruguay",        owner:"Tatiana Eguez",       pts:0, group:"H", num:33 },
+  { flag:"🇸🇦", country:"Arabia Saudita", owner:"Sergio Amelunge",     pts:0, group:"H", num:36 },
+  { flag:"🇺🇿", country:"Uzbekistán",     owner:"Dulce Terceros",      pts:0, group:"K", num:37 },
+  { flag:"🇵🇦", country:"Panamá",         owner:"Roberto Gutierrez",   pts:0, group:"L", num:34 },
+];
+
+function buildElim() {
+  const grid = document.getElementById('elim-grid');
+  if (grid.innerHTML !== '') return;
+  eliminadosData.forEach((e, i) => {
+    const hasPts = e.pts > 0;
+    const card = document.createElement('div');
+    card.className = 'ecard';
+    card.style.animationDelay = `${i * 40}ms`;
+    card.innerHTML = `
+      <div class="ecard-top"></div>
+      <div class="ecard-body">
+        <span class="ecard-flag">${e.flag}</span>
+        <div class="ecard-info">
+          <div class="ecard-country">${e.country}</div>
+          <div class="ecard-name">👤 ${e.owner} &nbsp;·&nbsp; #${e.num}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="ecard-pts">${hasPts ? '+'+e.pts : '0'}</div>
+          <div class="ecard-pts-label">PTS SORTEO</div>
+        </div>
+      </div>
+      <div class="ecard-footer">
+        <span class="ecard-group">Grupo ${e.group} · Fase de grupos</span>
+        ${hasPts
+          ? `<span class="ebadge ebadge-pts">⚡ ${e.pts} pts acumulados</span>`
+          : `<span class="ebadge">❌ Sin puntos</span>`}
+      </div>
+      <div style="padding:8px 16px 10px;font-size:11px;color:var(--blue);font-weight:700;letter-spacing:1px;background:#EEF3FF;text-align:center">
+        🔄 REENGANCHE DISPONIBLE — puede unirse a cualquier selección activa
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+let showingElim = false;
+function showElim(btn) {
+  showingElim = !showingElim;
+  document.getElementById('res-main').style.display = showingElim ? 'none' : 'block';
+  document.getElementById('elim-section').style.display = showingElim ? 'block' : 'none';
+  // reset other filter buttons
+  document.querySelectorAll('#panel-resultados .filter-btn').forEach(b => {
+    b.classList.remove('active','f-win','f-draw','f-live','active-elim');
+  });
+  if (showingElim) {
+    btn.classList.add('active-elim');
+    buildElim();
+  } else {
+    document.querySelector('#panel-resultados .filter-btn').classList.add('active');
+  }
 }
 
 /* ── INIT ───────────────────────────────────── */
